@@ -17,10 +17,10 @@ t1 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1 
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
 
 t2 :
@@ -30,10 +30,10 @@ t2 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1  
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
  
 t3 :
@@ -43,10 +43,10 @@ t3 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1  
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
  
 t4 :
@@ -56,10 +56,10 @@ t4 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1  
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
  
 t5 :
@@ -69,10 +69,10 @@ t5 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1  
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
  
 t6 :
@@ -82,10 +82,10 @@ t6 :
 	@echo "| Running $(TEST)"
 	@echo "+-------------------------------------------------------------------------------"
 	@cd $(TEST); ln -sf $(PATH_TO_PY_FILES)/*py .
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic   
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop       
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf 
-	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf 
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map.png         $(SIZE) --diagnostic                --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop                    --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --diagnostic --pdf --verbose 1  
+	cd $(TEST); $(PY_EXE) $(PRODUCT) map_cropped.png $(SIZE) --nocrop --pdf              --verbose 1  
 	cd $(TEST); convert -density 200 -resize 50% map_cropped_processed.pdf pdf_converted_to.png
  
 test : t1 t2 t3 t4 t5 t6
