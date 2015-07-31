@@ -46,6 +46,8 @@ class Civ_V_Image_Manip():
         miny = min(coords[1::2])
         maxy = max(coords[1::2])
 
+        bbox_coords = [minx, miny, maxx, miny, maxx, maxy, minx, maxy]
+
         # Calculate polygon center.
         midx = (minx + maxx) / 2.0
         midy = (miny + maxy) / 2.0
@@ -53,14 +55,17 @@ class Civ_V_Image_Manip():
         coords[::2]  = [(self.scale * (x - midx)) + midx for x in coords[::2]]
         coords[1::2] = [(self.scale * (y - midy)) + midy for y in coords[1::2]]
 
-        hex_hull = MultiPoint(list(zip(coords[::2], coords[1::2]))).convex_hull
+        subhex_coords = list(zip(coords[::2], coords[1::2]))
 
-        int_pt_coords = []
+        subhex_hull = MultiPoint(subhex_coords).convex_hull
+
+        # Flatten subhex list of tuples to conventional list for plotting.
+        subhex_coords = list(sum(subhex_coords, ()))
+
         for x in range(int(math.floor(minx)), int(math.ceil(maxx))):
             for y in range(int(math.floor(miny)), int(math.ceil(maxy))):
                 mypt = Point(x, y)
-                if(hex_hull.contains(mypt)):
-                    int_pt_coords.append([x, y])
+                if(subhex_hull.contains(mypt)):
                     r, g, b = im.getpixel(tuple([x, y]))
                     rgb[0] += r
                     rgb[1] += g
@@ -73,10 +78,7 @@ class Civ_V_Image_Manip():
 
         rgb_color = tuple([int(i) for i in rgb])
 
-    #   crgb = min(colors, key=partial(colorDifference, rgb))
-    #   hex_color = '#%02x%02x%02x' % (crgb[0], crgb[1], crgb[2])
-
-        return int_pt_coords, rgb_color
+        return bbox_coords, subhex_coords, rgb_color
 
     def Create_Map_Image(self):
         if(self.verbosity >= 1):
@@ -90,7 +92,7 @@ class Civ_V_Image_Manip():
         im = Image.open(self.infilename)
         im = im.convert('RGB')
 
-        if(self.diagnostic):
+        if(self.diagnostic and not self.makepdf):
             outfilename = re.sub(r'\.png', '_diagnostic.png', self.infilename)
             f = open('rgb.dat', 'w+')
             imout = Image.open(self.infilename)
@@ -102,7 +104,17 @@ class Civ_V_Image_Manip():
             imout = im.convert('RGB')
             draw = ImageDraw.Draw(imout)
             draw.rectangle((0, 0, im.size[0], im.size[1]), fill=(0, 0, 0))
-        else:
+        elif(self.diagnostic and self.makepdf):
+            outfilename = re.sub(r'\.png', '_diagnostic.pdf', self.infilename)
+            f = open('rgb.dat', 'w+')
+            pdf_pages = []
+            pdf_c = canvas.canvas()
+            pdf_c.fill(path.rect(   (-self.border)*self.PSF, 
+                                    (self.border)*self.PSF, 
+                                    (im.size[0]+2*self.border)*self.PSF, 
+                                    (-im.size[1]-2*self.border)*self.PSF),
+                                    [color.rgb.black])
+        elif(not self.diagnostic and self.makepdf):
             outfilename = re.sub(r'\.png', '_processed.pdf', self.infilename)
             pdf_pages = []
             pdf_c = canvas.canvas()
@@ -111,7 +123,7 @@ class Civ_V_Image_Manip():
                                     (im.size[0]+2*self.border)*self.PSF, 
                                     (-im.size[1]-2*self.border)*self.PSF),
                                     [color.rgb.black])
-
+ 
         hexagon_generator = Hexagon_Grid_Generator(edge_length = self.edgelength,
                                                    hex_orient = "TipUp",
                                                    xshift = self.xshift,
@@ -129,20 +141,47 @@ class Civ_V_Image_Manip():
 #           if(self.verbosity >= 2):
 #               [print("{:9.2f}".format(i), end="") for i in hex_coords]; print("")
 
-            subhex_coords, rgb_color = self.Find_Average_Hexagon_Color(tuple(hex_coords), im)
+            bbox_coords, subhex_coords, rgb_color = \
+                self.Find_Average_Hexagon_Color(tuple(hex_coords), im)
 
-            if(self.diagnostic):
+            # Diagnostic PNG
+            if(self.diagnostic and not self.makepdf):
+
+                # Draw diagnostic polygon bounding box.
+                draw.polygon(bbox_coords, outline=(0, 0, 255))
+
                 # Draw diagnostic polygon.
                 draw.polygon(hex_coords, outline=(255, 0, 0))
+
                 # Draw diagnostic area of averaging.
-                [draw.point(p, fill=(0, 255, 0)) for p in subhex_coords]
+                draw.polygon(subhex_coords, outline=(0, 255, 0))
                 f.write(str(rgb_color) + '\n')
 
+            # Non-diagnostic PNG
             elif(not self.diagnostic and not self.makepdf):
+
                 # Draw full-scale polygon.
                 draw.polygon(hex_coords, outline=rgb_color, fill=rgb_color)
 
-            else:
+            # Diagnostic PDF
+            elif(self.diagnostic and self.makepdf):
+
+                # Draw diagnostic polygon bounding box.
+                box_path = path.path(   path.moveto(bbox_coords[ 0]*self.PSF, -bbox_coords[ 1]*self.PSF),
+                                        path.lineto(bbox_coords[ 2]*self.PSF, -bbox_coords[ 3]*self.PSF),
+                                        path.lineto(bbox_coords[ 4]*self.PSF, -bbox_coords[ 5]*self.PSF),
+                                        path.lineto(bbox_coords[ 6]*self.PSF, -bbox_coords[ 7]*self.PSF),
+                                        path.closepath()) 
+
+                # Draw full-scale polygon.
+                subhex_path = path.path(   path.moveto(subhex_coords[ 0]*self.PSF, -subhex_coords[ 1]*self.PSF),
+                                           path.lineto(subhex_coords[ 2]*self.PSF, -subhex_coords[ 3]*self.PSF),
+                                           path.lineto(subhex_coords[ 4]*self.PSF, -subhex_coords[ 5]*self.PSF),
+                                           path.lineto(subhex_coords[ 6]*self.PSF, -subhex_coords[ 7]*self.PSF),
+                                           path.lineto(subhex_coords[ 8]*self.PSF, -subhex_coords[ 9]*self.PSF),
+                                           path.lineto(subhex_coords[10]*self.PSF, -subhex_coords[11]*self.PSF),
+                                           path.closepath())
+
                 # Draw full-scale polygon.
                 hex_path = path.path(   path.moveto(hex_coords[ 0]*self.PSF, -hex_coords[ 1]*self.PSF),
                                         path.lineto(hex_coords[ 2]*self.PSF, -hex_coords[ 3]*self.PSF),
@@ -152,6 +191,24 @@ class Civ_V_Image_Manip():
                                         path.lineto(hex_coords[10]*self.PSF, -hex_coords[11]*self.PSF),
                                         path.closepath())
 
+                pdf_c.stroke(box_path, [color.rgb.blue])
+                pdf_c.stroke(hex_path, [color.rgb.red])
+                pdf_c.stroke(subhex_path, [color.rgb.red])
+
+            # Non-Diagnostic PDF
+            elif(not self.diagnostic and self.makepdf):
+
+                # Draw full-scale polygon.
+                hex_path = path.path(   path.moveto(hex_coords[ 0]*self.PSF, -hex_coords[ 1]*self.PSF),
+                                        path.lineto(hex_coords[ 2]*self.PSF, -hex_coords[ 3]*self.PSF),
+                                        path.lineto(hex_coords[ 4]*self.PSF, -hex_coords[ 5]*self.PSF),
+                                        path.lineto(hex_coords[ 6]*self.PSF, -hex_coords[ 7]*self.PSF),
+                                        path.lineto(hex_coords[ 8]*self.PSF, -hex_coords[ 9]*self.PSF),
+                                        path.lineto(hex_coords[10]*self.PSF, -hex_coords[11]*self.PSF),
+                                        path.closepath())
+
+                # Draw polygon and border together, note that non-uniform border
+                # colors will give the appearance of minor overlaps at corners.
                 pdf_c.stroke(hex_path, [             color.rgb( rgb_color[0]/255.,
                                                                 rgb_color[1]/255.,
                                                                 rgb_color[2]/255.),  
@@ -160,11 +217,13 @@ class Civ_V_Image_Manip():
                                                                 rgb_color[2]/255.)])
                                        ])
 
+                # Draw polygon and border separately; another method to accomplish
+                # the same thing as above.
 #               pdf_c.fill(hex_path, [color.rgb( rgb_color[0]/255.,
 #                                                rgb_color[1]/255.,
 #                                                rgb_color[2]/255.)])
- 
-
+#
+#               pdf_c.stroke(hex_path, [color.rgb.black, style.linewidth(0.0)])
 
         if(not self.makepdf):
             imout.save(outfilename, "PNG")
@@ -188,13 +247,13 @@ class Civ_V_Image_Manip():
         self.makepdf     = makepdf
         if(self.makepdf):
             self.border  = 10
-            self.PSF     = 0.05 # Page scaling factor so PDFs aren't huge.
+            self.PSF     = 0.025 # Page scaling factor so PDFs aren't huge.
 
         if(mapsize == "duel"):
             self.cropbox = [886, 678, 1817, 946]
-            self.edgelength = 25.9
+            self.edgelength = 25.45
             self.xshift = 22.5
-            self.yshift = 1.0
+            self.yshift = 0.0
             self.scale = 0.75
             self.rmin = 0
             self.rmax = 24 #24
