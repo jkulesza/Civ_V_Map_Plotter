@@ -81,14 +81,6 @@ class Civ_V_Image_Manip():
         return bbox_coords, subhex_coords, rgb_color
 
     def Create_Map_Image(self):
-        if(self.verbosity >= 1):
-            if(self.diagnostic):
-                print('Creating diagnostic image.')
-            if(self.makepdf):
-                print('Creating PDF image (' + self.outfilename + ').')
-            else:
-                print('Creating PNG image (' + self.outfilename + ').')
-
         im = Image.open(self.infilename)
         im = im.convert('RGB')
 
@@ -123,12 +115,22 @@ class Civ_V_Image_Manip():
                                     (im.size[0]+2*self.border)*self.PSF, 
                                     (-im.size[1]-2*self.border)*self.PSF),
                                     [color.rgb.black])
- 
+
+        # Initialize hexagon grid. 
         hexagon_generator = Hexagon_Grid_Generator(edge_length = self.edgelength,
                                                    hex_orient = "TipUp",
                                                    xshift = self.xshift,
                                                    yshift = self.yshift)
 
+        if(self.verbosity >= 1):
+            if(self.diagnostic):
+                print('Creating diagnostic image.')
+            if(self.makepdf):
+                print('Creating PDF image (' + outfilename + ').')
+            else:
+                print('Creating PNG image (' + outfilename + ').') 
+
+        # Loop over each hexagon and process/draw it.
         for row in range(self.rmin, self.rmax):
           for col in range(self.cmin, self.cmax):
             hexagon = hexagon_generator(row, col)
@@ -166,14 +168,14 @@ class Civ_V_Image_Manip():
             # Diagnostic PDF
             elif(self.diagnostic and self.makepdf):
 
-                # Draw diagnostic polygon bounding box.
+                # Create diagnostic polygon bounding box.
                 box_path = path.path(   path.moveto(bbox_coords[ 0]*self.PSF, -bbox_coords[ 1]*self.PSF),
                                         path.lineto(bbox_coords[ 2]*self.PSF, -bbox_coords[ 3]*self.PSF),
                                         path.lineto(bbox_coords[ 4]*self.PSF, -bbox_coords[ 5]*self.PSF),
                                         path.lineto(bbox_coords[ 6]*self.PSF, -bbox_coords[ 7]*self.PSF),
                                         path.closepath()) 
 
-                # Draw full-scale polygon.
+                # Create full-scale polygon.
                 subhex_path = path.path(   path.moveto(subhex_coords[ 0]*self.PSF, -subhex_coords[ 1]*self.PSF),
                                            path.lineto(subhex_coords[ 2]*self.PSF, -subhex_coords[ 3]*self.PSF),
                                            path.lineto(subhex_coords[ 4]*self.PSF, -subhex_coords[ 5]*self.PSF),
@@ -182,7 +184,7 @@ class Civ_V_Image_Manip():
                                            path.lineto(subhex_coords[10]*self.PSF, -subhex_coords[11]*self.PSF),
                                            path.closepath())
 
-                # Draw full-scale polygon.
+                # Create full-scale polygon.
                 hex_path = path.path(   path.moveto(hex_coords[ 0]*self.PSF, -hex_coords[ 1]*self.PSF),
                                         path.lineto(hex_coords[ 2]*self.PSF, -hex_coords[ 3]*self.PSF),
                                         path.lineto(hex_coords[ 4]*self.PSF, -hex_coords[ 5]*self.PSF),
@@ -191,6 +193,7 @@ class Civ_V_Image_Manip():
                                         path.lineto(hex_coords[10]*self.PSF, -hex_coords[11]*self.PSF),
                                         path.closepath())
 
+                # Draw shapes on canvase.
                 pdf_c.stroke(box_path, [color.rgb.blue])
                 pdf_c.stroke(hex_path, [color.rgb.red])
                 pdf_c.stroke(subhex_path, [color.rgb.red])
@@ -198,7 +201,7 @@ class Civ_V_Image_Manip():
             # Non-Diagnostic PDF
             elif(not self.diagnostic and self.makepdf):
 
-                # Draw full-scale polygon.
+                # Create full-scale polygon.
                 hex_path = path.path(   path.moveto(hex_coords[ 0]*self.PSF, -hex_coords[ 1]*self.PSF),
                                         path.lineto(hex_coords[ 2]*self.PSF, -hex_coords[ 3]*self.PSF),
                                         path.lineto(hex_coords[ 4]*self.PSF, -hex_coords[ 5]*self.PSF),
