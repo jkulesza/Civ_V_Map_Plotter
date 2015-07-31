@@ -97,4 +97,5 @@ clean :
 	rm -rf test_*/*dat
 	rm -rf test_*/*cropped*png
 	rm -rf test_*/*cropped*pdf
+	rm -rf test_*/*converted*png
 
