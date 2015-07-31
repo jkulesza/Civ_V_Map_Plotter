@@ -7,10 +7,10 @@ parser = argparse.ArgumentParser(add_help=False)
 # Optional arguments.
 parser.add_argument('-d', '--diagnostic',
                     help='Create diagnostic graphic of hexagon operations.',
-                    action="store_true") 
+                    action="store_true")
 parser.add_argument('-h', '--help',
                     help='Show this help screen and exit.',
-                    action="help") 
+                    action="help")
 parser.add_argument('-m', '--multiple',
                     help='Flag to enable processing a series of images. \
                         Note that this is not yet enabled, but will be at some \
@@ -21,6 +21,9 @@ parser.add_argument('-m', '--multiple',
 parser.add_argument('-nc', '--nocrop',
                     help='Do not crop the image specified.',
                     action='store_true')
+parser.add_argument('-p', '--pdf',
+                    help='Create PDF instead of PNG.',
+                    action='store_true')
 parser.add_argument('-s', '--single',
                     help='Flag to enable processing of a single image.',
                     action='store_true')
@@ -29,7 +32,7 @@ parser.add_argument('-v', '--verbosity',
                     type=int)
 
 # Required arguments.
-parser.add_argument('infilename', 
+parser.add_argument('infilename',
                     help='The filename for the raw screenshot from Civilization \
                         V.')
 parser.add_argument('mapsize',
@@ -56,16 +59,20 @@ if(verbosity >= 1):
             " as a " + args.mapsize.lower() + " map.")
 
 # Unless the user specified not to crop, do it.
-img_manip = Civ_V_Image_Manip(args.infilename, args.mapsize.lower(), verbosity)
+img_manip = Civ_V_Image_Manip(  args.infilename,
+                                args.mapsize.lower(),
+                                verbosity,
+                                args.diagnostic,
+                                args.pdf)
+
+# Crop and reset infilename to the cropped image.
 if(not args.nocrop):
     args.infilename = img_manip.Crop()
-    img_manip = Civ_V_Image_Manip(args.infilename, args.mapsize.lower(), verbosity)
+    img_manip = Civ_V_Image_Manip(  args.infilename,
+                                    args.mapsize.lower(),
+                                    verbosity,
+                                    args.diagnostic,
+                                    args.pdf)
 
-
-if(args.diagnostic):
-    img_manip.Create_Map_Image(diagnostic=True)     
-else:
-    img_manip.Create_Map_Image(diagnostic=False)     
-
-
-
+# Finally, we make the image that we are interested in.
+img_manip.Create_Map_Image()

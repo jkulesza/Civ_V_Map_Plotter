@@ -1,6 +1,7 @@
 from Hexagon_Grid_Generator import *
 import numpy as np
 from PIL import Image, ImageDraw
+from pyx import *
 import re
 
 class Civ_V_Image_Manip():
@@ -11,13 +12,13 @@ class Civ_V_Image_Manip():
         outfilename = re.sub(r'\.png', '_cropped.png', self.infilename)
         if(self.verbosity >= 1):
             print("Cropping Image to " + outfilename + ".")
-        try:        
+        try:
             im = Image.open(self.infilename)
         except IOError as e:
-            print("Unable to open file.") 
+            print("Unable to open file.")
 
         im = im.crop(self.cropbox)
-        im.save(outfilename) 
+        im.save(outfilename)
         return outfilename
 
     # Find the difference between two colors.
@@ -30,33 +31,33 @@ class Civ_V_Image_Manip():
 
     # Find the average color within a hexagon, scaled down by a certain amount.
     # Note that we must play tuple/list games to keep argument immutable.
-    def Find_Average_Hexagon_Color(self, hex_coords, im):    
+    def Find_Average_Hexagon_Color(self, hex_coords, im):
         from shapely.geometry import Point, MultiPoint
-    
+
         coords = list(hex_coords)
-    
+
         # Default RGB values to black opaque and pixel counter to zero.
         rgb = [0, 0, 0]
         count = 0
-    
-        # Calculate hexagon bounding box.    
+
+        # Calculate hexagon bounding box.
         minx = min(coords[::2])
         maxx = max(coords[::2])
         miny = min(coords[1::2])
         maxy = max(coords[1::2])
-    
+
         # Calculate polygon center.
         midx = (minx + maxx) / 2.0
         midy = (miny + maxy) / 2.0
-    
+
         coords[::2]  = [(self.scale * (x - midx)) + midx for x in coords[::2]]
         coords[1::2] = [(self.scale * (y - midy)) + midy for y in coords[1::2]]
-        
+
         hex_hull = MultiPoint(list(zip(coords[::2], coords[1::2]))).convex_hull
-    
+
         int_pt_coords = []
-        for x in range(math.floor(minx), math.ceil(maxx)):
-            for y in range(math.floor(miny), math.ceil(maxy)):
+        for x in range(int(math.floor(minx)), int(math.ceil(maxx))):
+            for y in range(int(math.floor(miny)), int(math.ceil(maxy))):
                 mypt = Point(x, y)
                 if(hex_hull.contains(mypt)):
                     int_pt_coords.append([x, y])
@@ -65,35 +66,53 @@ class Civ_V_Image_Manip():
                     rgb[1] += g
                     rgb[2] += b
                     count  += 1
-    
+
         rgb[0] = rgb[0] / count
         rgb[1] = rgb[1] / count
         rgb[2] = rgb[2] / count
 
         rgb_color = tuple([int(i) for i in rgb])
-        
+
     #   crgb = min(colors, key=partial(colorDifference, rgb))
     #   hex_color = '#%02x%02x%02x' % (crgb[0], crgb[1], crgb[2])
-    
+
         return int_pt_coords, rgb_color
 
-    def Create_Map_Image(self, diagnostic=False):
+    def Create_Map_Image(self):
+        if(self.verbosity >= 1):
+            if(self.diagnostic):
+                print('Creating diagnostic image.')
+            if(self.makepdf):
+                print('Creating PDF image (' + self.outfilename + ').')
+            else:
+                print('Creating PNG image (' + self.outfilename + ').')
 
         im = Image.open(self.infilename)
         im = im.convert('RGB')
-        imout = Image.open(self.infilename)
-        imout = im.convert('RGB')
 
-        draw = ImageDraw.Draw(imout)
-
-        if(diagnostic):
+        if(self.diagnostic):
             outfilename = re.sub(r'\.png', '_diagnostic.png', self.infilename)
             f = open('rgb.dat', 'w+')
-        else:
+            imout = Image.open(self.infilename)
+            imout = im.convert('RGB')
+            draw = ImageDraw.Draw(imout)
+        elif(not self.diagnostic and not self.makepdf):
             outfilename = re.sub(r'\.png', '_processed.png', self.infilename)
+            imout = Image.open(self.infilename)
+            imout = im.convert('RGB')
+            draw = ImageDraw.Draw(imout)
             draw.rectangle((0, 0, im.size[0], im.size[1]), fill=(0, 0, 0))
-  
-        hexagon_generator = Hexagon_Grid_Generator(edge_length = self.edgelength, 
+        else:
+            outfilename = re.sub(r'\.png', '_processed.pdf', self.infilename)
+            pdf_pages = []
+            pdf_c = canvas.canvas()
+            pdf_c.fill(path.rect(   (-self.border)*self.PSF, 
+                                    (self.border)*self.PSF, 
+                                    (im.size[0]+2*self.border)*self.PSF, 
+                                    (-im.size[1]-2*self.border)*self.PSF),
+                                    [color.rgb.black])
+
+        hexagon_generator = Hexagon_Grid_Generator(edge_length = self.edgelength,
                                                    hex_orient = "TipUp",
                                                    xshift = self.xshift,
                                                    yshift = self.yshift)
@@ -102,49 +121,85 @@ class Civ_V_Image_Manip():
           for col in range(self.cmin, self.cmax):
             hexagon = hexagon_generator(row, col)
             hex_coords = list(hexagon)
-        
-            # Diagnostic output.
-            if(self.verbosity >= 2):
-                [print("{:9.2f}".format(i), end="") for i in hex_coords]; print("")
-        
-            subhex_coords, rgb_color = self.Find_Average_Hexagon_Color(tuple(hex_coords), im)   
 
-            if(diagnostic):            
+            # Diagnostic output.
+# This was commented out because of the move from Python 3.4 to Python 2.7 because
+# there is no pyx package in Fink on Mac OSX for Python 3.4.  Hopefully, some day 
+# that will be resolved and this diagnostic output can be re-included.
+#           if(self.verbosity >= 2):
+#               [print("{:9.2f}".format(i), end="") for i in hex_coords]; print("")
+
+            subhex_coords, rgb_color = self.Find_Average_Hexagon_Color(tuple(hex_coords), im)
+
+            if(self.diagnostic):
                 # Draw diagnostic polygon.
                 draw.polygon(hex_coords, outline=(255, 0, 0))
                 # Draw diagnostic area of averaging.
                 [draw.point(p, fill=(0, 255, 0)) for p in subhex_coords]
                 f.write(str(rgb_color) + '\n')
-            else:
+
+            elif(not self.diagnostic and not self.makepdf):
                 # Draw full-scale polygon.
                 draw.polygon(hex_coords, outline=rgb_color, fill=rgb_color)
 
-        imout.save(outfilename, "PNG")
+            else:
+                # Draw full-scale polygon.
+                hex_path = path.path(   path.moveto(hex_coords[ 0]*self.PSF, -hex_coords[ 1]*self.PSF),
+                                        path.lineto(hex_coords[ 2]*self.PSF, -hex_coords[ 3]*self.PSF),
+                                        path.lineto(hex_coords[ 4]*self.PSF, -hex_coords[ 5]*self.PSF),
+                                        path.lineto(hex_coords[ 6]*self.PSF, -hex_coords[ 7]*self.PSF),
+                                        path.lineto(hex_coords[ 8]*self.PSF, -hex_coords[ 9]*self.PSF),
+                                        path.lineto(hex_coords[10]*self.PSF, -hex_coords[11]*self.PSF),
+                                        path.closepath())
 
-        if(diagnostic):
+                pdf_c.stroke(hex_path, [             color.rgb( rgb_color[0]/255.,
+                                                                rgb_color[1]/255.,
+                                                                rgb_color[2]/255.),  
+                                        deco.filled([color.rgb( rgb_color[0]/255.,
+                                                                rgb_color[1]/255.,
+                                                                rgb_color[2]/255.)])
+                                       ])
+
+#               pdf_c.fill(hex_path, [color.rgb( rgb_color[0]/255.,
+#                                                rgb_color[1]/255.,
+#                                                rgb_color[2]/255.)])
+ 
+
+
+        if(not self.makepdf):
+            imout.save(outfilename, "PNG")
+        else:
+            pdf_c.writePDFfile(outfilename)
+
+        if(self.diagnostic):
             f.close()
 
         return
- 
+
     # The cropboxes assigned here assume the use of OSX's built-in screenshot
     # utility applied to a full screen (Shift-Command-4, Spacebar, Left-click)
     # capture of a full screen Civ V summary map screen.
-    def __init__(self, infilename, mapsize, verbosity):
+    def __init__(self, infilename, mapsize, verbosity, diagnostic, makepdf, border=0):
 
         self.infilename  = infilename
         self.mapsize     = mapsize
         self.verbosity   = verbosity
+        self.diagnostic  = diagnostic
+        self.makepdf     = makepdf
+        if(self.makepdf):
+            self.border  = 10
+            self.PSF     = 0.05 # Page scaling factor so PDFs aren't huge.
 
         if(mapsize == "duel"):
-            self.cropbox = [886, 678, 1817, 946] 
+            self.cropbox = [886, 678, 1817, 946]
             self.edgelength = 25.9
-            self.xshift = 21.0
-            self.yshift =  1.0
+            self.xshift = 22.5
+            self.yshift = 1.0
             self.scale = 0.75
             self.rmin = 0
-            self.rmax = 24
+            self.rmax = 24 #24
             self.cmin = 0
-            self.cmax = 40
+            self.cmax = 40 #40
         elif(mapsize == "tiny"):
             self.cropbox = [944, 678, 1701, 946]
             self.edgelength = 17.35
@@ -152,9 +207,9 @@ class Civ_V_Image_Manip():
             self.yshift =  1.0
             self.scale = 0.65
             self.rmin = 0
-            self.rmax = 36
+            self.rmax = 36 #36
             self.cmin = 0
-            self.cmax = 56
+            self.cmax = 56 #56
         elif(mapsize == "small"):
             self.cropbox = [935, 678, 1718, 946]
             self.edgelength = 14.89
@@ -162,42 +217,42 @@ class Civ_V_Image_Manip():
             self.yshift =  1.0
             self.scale = 0.65
             self.rmin = 0
-            self.rmax = 42
+            self.rmax = 42 #42
             self.cmin = 0
-            self.cmax = 66
+            self.cmax = 66 #66
         elif(mapsize == "standard"):
             self.cropbox = [953, 678, 1682, 946]
             self.edgelength = 12.05
-            self.xshift = 11.0  
+            self.xshift = 11.0
             self.yshift =  1.0
             self.scale = 0.65
             self.rmin = 0
-            self.rmax = 52
+            self.rmax = 52 #52
             self.cmin = 0
-            self.cmax = 80
+            self.cmax = 80 #66
         elif(mapsize == "large"):
             self.cropbox = [906, 678, 1776, 946]
             self.edgelength = 9.805
-            self.xshift = 9.0  
+            self.xshift = 9.0
             self.yshift =  0.0
             self.scale = 0.65
             self.rmin = 0
-            self.rmax = 64
+            self.rmax = 64 #64
             self.cmin = 0
-            self.cmax = 104
+            self.cmax = 104 #104
         elif(mapsize == "huge"):
             self.cropbox = [919, 678, 1750, 946]
             self.edgelength = 7.855
-            self.xshift = 8.0  
+            self.xshift = 8.0
             self.yshift =  0.0
             self.scale = 0.50
             self.rmin = 0
-            self.rmax = 80
+            self.rmax = 80 #80
             self.cmin = 0
-            self.cmax = 128
+            self.cmax = 128 #128
 
         self.cropbox = (self.cropbox[0],                   # Distance from left to start.
                         self.cropbox[1],                   # Distance from top to start.
-                        self.cropbox[0] + self.cropbox[2], # Distance from left to end. 
-                        self.cropbox[1] + self.cropbox[3]) # Distance from top to end.  
+                        self.cropbox[0] + self.cropbox[2], # Distance from left to end.
+                        self.cropbox[1] + self.cropbox[3]) # Distance from top to end.
 
