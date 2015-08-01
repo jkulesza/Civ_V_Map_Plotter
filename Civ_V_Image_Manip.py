@@ -6,6 +6,8 @@ import re
 
 class Civ_V_Image_Manip():
 
+    image_dims = {}
+
     # This function crops a given PNG file according to a cropbox defined
     # according to the size map played.
     def Crop(self):
@@ -254,12 +256,12 @@ class Civ_V_Image_Manip():
 
         if(mapsize == "duel"):
             self.cropbox = [886, 678, 1817, 946]
-            self.edgelength = 25.45
-            self.xshift = 22.5
+            self.edgelength = 25.90
+            self.xshift = 21.0
             self.yshift = 0.0
             self.scale = 0.75
             self.rmin = 0
-            self.rmax = 24 #24
+            self.rmax = 4 #24
             self.cmin = 0
             self.cmax = 40 #40
         elif(mapsize == "tiny"):
