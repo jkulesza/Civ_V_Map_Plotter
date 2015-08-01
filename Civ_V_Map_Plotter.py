@@ -11,13 +11,12 @@ parser.add_argument('-d', '--diagnostic',
 parser.add_argument('-h', '--help',
                     help='Show this help screen and exit.',
                     action="help")
-parser.add_argument('-m', '--multiple',
-                    help='Flag to enable processing a series of images. \
-                        Note that this is not yet enabled, but will be at some \
-                        point with the intent of processing a screen recording \
-                        of the video progression through the turns from the \
-                        end-of-game map.',
-                    action='store_true')
+parser.add_argument('-m', '--method',
+                    help='The capture method use.  Allowable options are: \'sc3\': \
+                        OSX\'s Shift-Cmd-3 to capture the full screen; \'sc4sb\': \
+                        OSX\'s Shift-Cmd-4, Spacebar to capture the window with a \
+                        shadow,\n',
+                    type=str)
 parser.add_argument('-nc', '--nocrop',
                     help='Do not crop the image specified.',
                     action='store_true')
@@ -48,6 +47,14 @@ if(mapsize not in ['duel', 'tiny', 'small', 'standard', 'large', 'huge']):
     raise RuntimeError('Mapsize specified not recognized.  Valid options \
 are: Duel, Tiny, Small, Standard, Large, and Huge.')
 
+if(args.method):
+    method = args.method.lower()
+    if(method not in ['sc3', 'sc4sb']):
+        raise RuntimeError('Improper screen capture method specified.  Valid \
+options are: sc3 and sc4sb.')
+else:
+    method = 'sc3'
+
 if(args.verbosity):
     print("Enabling verbose output, degree " + str(args.verbosity) + ".")
     verbosity = args.verbosity
@@ -61,6 +68,7 @@ if(verbosity >= 1):
 # Unless the user specified not to crop, do it.
 img_manip = Civ_V_Image_Manip(  args.infilename,
                                 args.mapsize.lower(),
+                                method,
                                 verbosity,
                                 args.diagnostic,
                                 args.pdf)
@@ -70,6 +78,7 @@ if(not args.nocrop):
     args.infilename = img_manip.Crop()
     img_manip = Civ_V_Image_Manip(  args.infilename,
                                     args.mapsize.lower(),
+                                    method,
                                     verbosity,
                                     args.diagnostic,
                                     args.pdf)

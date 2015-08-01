@@ -6,7 +6,6 @@ import re
 
 class Civ_V_Image_Manip():
 
-    image_dims = {}
 
     # This function crops a given PNG file according to a cropbox defined
     # according to the size map played.
@@ -243,77 +242,49 @@ class Civ_V_Image_Manip():
     # The cropboxes assigned here assume the use of OSX's built-in screenshot
     # utility applied to a full screen (Shift-Command-4, Spacebar, Left-click)
     # capture of a full screen Civ V summary map screen.
-    def __init__(self, infilename, mapsize, verbosity, diagnostic, makepdf, border=0):
+    def __init__(   self, infilename, mapsize, method,
+                    verbosity=0, diagnostic=False, makepdf=True, border=0):
+
+        # Create nested dictionary to contain magic numbers for image manipulations.
+        image_dims = {}
+        image_dims['sc3'] = {}
+        image_dims['sc4sb'] = {}
+
+        # Spacings calculated in Mathematica with commands:
+        # N[{1817, 1701, 1718, 1682, 1776, 1750}/(({40,56,66,80,104,128}*2+1)*Cos[30\[Degree]])]
+        # %*Cos[30\[Degree]]
+    
+        image_dims['sc3']['duel']       = [[771, 564, 1817, 946], 25.9024, 22.4321, 0.0, 0.75, 0,  2, 0, 2], # 24,  40 
+        image_dims['sc3']['tiny']       = [[829, 564, 1701, 946], 17.3818, 15.0531, 0.0, 0.65, 0,  2, 0, 2], # 36,  56 
+        image_dims['sc3']['small']      = [[821, 564, 1718, 946], 14.9156, 12.9173, 0.0, 0.65, 0,  2, 0, 2], # 42,  66 
+        image_dims['sc3']['standard']   = [[839, 564, 1682, 946], 12.0634, 10.4472, 0.0, 0.65, 0,  2, 0, 2], # 52,  80 
+        image_dims['sc3']['large']      = [[792, 564, 1776, 946],  9.8122,  8.4976, 0.0, 0.65, 0,  2, 0, 2], # 64, 104 
+        image_dims['sc3']['huge']       = [[805, 564, 1750, 946],  7.8628,  6.8093, 0.0, 0.50, 0,  2, 0, 2], # 80, 128 
+    
+        image_dims['sc4sb']['duel']     = [[886, 678, 1817, 946], 25.9024, 22.4321, 0.0, 0.75, 0,  2, 0, 2], # 24,  40 
+        image_dims['sc4sb']['tiny']     = [[944, 678, 1701, 946], 17.3818, 15.0531, 0.0, 0.65, 0,  2, 0, 2], # 36,  56 
+        image_dims['sc4sb']['small']    = [[935, 678, 1718, 946], 14.9156, 12.9173, 0.0, 0.65, 0,  2, 0, 2], # 42,  66 
+        image_dims['sc4sb']['standard'] = [[953, 678, 1682, 946], 12.0634, 10.4472, 0.0, 0.65, 0,  2, 0, 2], # 52,  80 
+        image_dims['sc4sb']['large']    = [[906, 678, 1776, 946],  9.8122,  8.4976, 0.0, 0.65, 0,  2, 0, 2], # 64, 104 
+        image_dims['sc4sb']['huge']     = [[919, 678, 1750, 946],  7.8628,  6.8093, 0.0, 0.50, 0,  2, 0, 2], # 80, 128 
 
         self.infilename  = infilename
-        self.mapsize     = mapsize
         self.verbosity   = verbosity
         self.diagnostic  = diagnostic
         self.makepdf     = makepdf
         if(self.makepdf):
-            self.border  = 10
+            self.border  = border
             self.PSF     = 0.025 # Page scaling factor so PDFs aren't huge.
 
-        if(mapsize == "duel"):
-            self.cropbox = [886, 678, 1817, 946]
-            self.edgelength = 25.90
-            self.xshift = 21.0
-            self.yshift = 0.0
-            self.scale = 0.75
-            self.rmin = 0
-            self.rmax = 4 #24
-            self.cmin = 0
-            self.cmax = 40 #40
-        elif(mapsize == "tiny"):
-            self.cropbox = [944, 678, 1701, 946]
-            self.edgelength = 17.35
-            self.xshift = 15.6
-            self.yshift =  1.0
-            self.scale = 0.65
-            self.rmin = 0
-            self.rmax = 36 #36
-            self.cmin = 0
-            self.cmax = 56 #56
-        elif(mapsize == "small"):
-            self.cropbox = [935, 678, 1718, 946]
-            self.edgelength = 14.89
-            self.xshift = 14.25
-            self.yshift =  1.0
-            self.scale = 0.65
-            self.rmin = 0
-            self.rmax = 42 #42
-            self.cmin = 0
-            self.cmax = 66 #66
-        elif(mapsize == "standard"):
-            self.cropbox = [953, 678, 1682, 946]
-            self.edgelength = 12.05
-            self.xshift = 11.0
-            self.yshift =  1.0
-            self.scale = 0.65
-            self.rmin = 0
-            self.rmax = 52 #52
-            self.cmin = 0
-            self.cmax = 80 #66
-        elif(mapsize == "large"):
-            self.cropbox = [906, 678, 1776, 946]
-            self.edgelength = 9.805
-            self.xshift = 9.0
-            self.yshift =  0.0
-            self.scale = 0.65
-            self.rmin = 0
-            self.rmax = 64 #64
-            self.cmin = 0
-            self.cmax = 104 #104
-        elif(mapsize == "huge"):
-            self.cropbox = [919, 678, 1750, 946]
-            self.edgelength = 7.855
-            self.xshift = 8.0
-            self.yshift =  0.0
-            self.scale = 0.50
-            self.rmin = 0
-            self.rmax = 80 #80
-            self.cmin = 0
-            self.cmax = 128 #128
+        self.cropbox    = image_dims[method][mapsize][0][0]
+        self.edgelength = image_dims[method][mapsize][0][1]
+        self.xshift     = image_dims[method][mapsize][0][2] 
+        self.yshift     = image_dims[method][mapsize][0][3] 
+        self.scale      = image_dims[method][mapsize][0][4]
+        self.rmin       = image_dims[method][mapsize][0][5]
+        self.rmax       = image_dims[method][mapsize][0][6]
+        self.cmin       = image_dims[method][mapsize][0][7]
+        self.cmax       = image_dims[method][mapsize][0][8]
 
         self.cropbox = (self.cropbox[0],                   # Distance from left to start.
                         self.cropbox[1],                   # Distance from top to start.
