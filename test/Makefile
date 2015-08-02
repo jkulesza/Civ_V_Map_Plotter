@@ -462,12 +462,25 @@ t48 :
 	cd $(DIR); $(PY_EXE) $(PRODUCT) map.png $(SIZE) --pdf --verbosity 1 --method sc4sb
 	cd $(DIR); convert -density 200 -resize 50% map_cropped_processed.pdf map_pdf_converted_to.png
 
+# Realistic test cases based on what people are likely to do.
+
+t49 :
+	$(eval SIZE := duel)
+	$(eval DIR := 01_SC3)
+	@echo "+-------------------------------------------------------------------------------"
+	@echo "| Running $@"
+	@echo "+-------------------------------------------------------------------------------"
+	@cd $(DIR); ln -sf $(PATH_TO_PY_FILES)/*py .
+	cd $(DIR); $(PY_EXE) $(PRODUCT) map.png $(SIZE) --pdf
+ 
+
 diagnostic_png: t1  t2  t3  t4  t5  t6  t7  t8  t9  t10 t11 t12
 png           : t13 t14 t15 t16 t17 t18 t19 t20 t21 t22 t23 t24
 diagnostic_pdf: t25 t26 t27 t28 t29 t30 t31 t32 t33 t34 t35 t36
 pdf           : t37 t38 t39 t40 t41 t42 t43 t44 t45 t46 t47 t48
+realistic     : t49
 
-all : diagnostic_png png diagnostic_pdf pdf
+all : diagnostic_png png diagnostic_pdf pdf realistic
 
 clean :
 	rm -rf */*py
