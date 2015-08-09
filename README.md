@@ -19,7 +19,7 @@ Required Python Packages
 * PIL
 * Pyx
 
-Test with Python 2.7.4, but expected to be fully compliant with Python 3.
+Tested with Python 2.7.4, but expected to be fully compliant with Python 3.
 
 Optional External Software
 -----------------
