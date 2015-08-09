@@ -12,14 +12,16 @@ See the example directory for before/after images from screen captures.
 Note that the test case directory does not include results to avoid the
 inclusion of copious, unnecessary, binary files.
 
-Required Packages
+Required Python Packages
 -----------------
 
 * Numpy
 * PIL
 * Pyx
 
-Optional Software
+Test with Python 2.7.4, but expected to be fully compliant with Python 3.
+
+Optional External Software
 -----------------
 
 * ImageMagick (for `convert` and/or `mogrify` for post-processing)
