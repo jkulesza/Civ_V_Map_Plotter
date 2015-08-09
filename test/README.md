@@ -4,7 +4,7 @@ The two types of captures currently supported are:
 - OSX Shift-Command-4, Spacebar (a window capture of Civ V running full screen,
   which adds a titlebar and shadow effect
 
-The test cases are described as follows:
+The test case targets are described as follows:
 
 - test_01 - test diagnostic PNG output on     duel-sized map made with Shift-Cmd-3 capture
 - test_02 - test diagnostic PNG output on     tiny-sized map made with Shift-Cmd-3 capture
